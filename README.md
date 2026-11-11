@@ -38,6 +38,20 @@ npx skills check
 npx skills update
 ```
 
+### Using an AI Agent
+
+Ask your coding agent (Antigravity, Claude Code, Codex, Cursor, Gemini CLI, etc.) to install the skills for you. For example, to install all skills globally:
+
+```text
+Install the skills from https://github.com/keanehui/agent-skills globally.
+```
+
+Or to install a single skill into your current project only:
+
+```text
+Install the code-review skill from https://github.com/keanehui/agent-skills into this project.
+```
+
 ### Antigravity (via local clone)
 
 `npx skills add` supports Antigravity directly. If you prefer tracking a local `git clone` so `git pull` updates skills automatically:
