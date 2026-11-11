@@ -8,6 +8,7 @@ description: >-
   adequacy, confirm a change was applied everywhere, or verify release
   readiness. Do not use for routine feature work or debugging a single isolated
   runtime error unless a broader review is requested.
+license: MIT
 ---
 
 # General-Purpose Code Review & Readiness Audit
