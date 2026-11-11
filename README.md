@@ -1,122 +1,130 @@
 # agent-skills
 
-Reusable AI agent skills following the open [Agent Skills](https://agentskills.io) (`SKILL.md`) specification. Designed to work across compatible coding agents, including Antigravity, Claude Code, Codex, Cursor, and Gemini CLI.
+Reusable AI agent skills following the open [Agent Skills](https://agentskills.io) (`SKILL.md`) specification. An agent skill is a folder containing a `SKILL.md` file that compatible coding agents (Antigravity, Claude Code, Codex, Cursor, Gemini CLI, and others) discover by metadata and load on demand when your request matches its description.
 
-## Available Skills
+**Contents:** [Quick start](#quick-start) · [Available skills](#available-skills) · [Installation](#installation) · [Usage](#usage) · [Updating and removing](#updating-and-removing) · [Contributing](#contributing) · [License](#license)
 
-| Skill | Description | Source |
-| :--- | :--- | :--- |
-| `code-review` | General-purpose code review: ripple-effect checks, dead-code/stale-doc cleanup, test adequacy, and production-readiness audit. | [`skills/code-review/SKILL.md`](./skills/code-review/SKILL.md) |
+## Quick start
+
+```bash
+npx skills add keanehui/agent-skills
+```
+
+Follow the prompts to choose skills, target agents, and project vs. global scope, then start a new session so your agent discovers the installed skills.
+
+## Available skills
+
+| Skill | Description |
+| :--- | :--- |
+| [`code-review`](./skills/code-review/SKILL.md) | General-purpose code review: change-impact (ripple effect) check, dead-code and stale-doc cleanup, test adequacy, and production-readiness audit. |
 
 ## Installation
 
-### Recommended: Skills CLI (`npx skills`)
+### Option 1: Skills CLI (recommended)
 
-Requires Node.js (`npx`). Supports interactive selection of skills, target agents, and project vs. global scope.
+Requires Node.js (`npx`). Lists, installs, and links skills across supported agents:
 
 ```bash
-# Preview available skills
+# Preview available skills without installing
 npx skills add keanehui/agent-skills --list
 
-# Install interactively (choose skills, agents, and scope)
-npx skills add keanehui/agent-skills
-
-# Install a specific skill globally
+# Install a specific skill globally across all projects
 npx skills add keanehui/agent-skills --skill code-review --global
 ```
 
-If the repository is private/restricted or you use SSH authentication:
+For SSH-only setups: `npx skills add git@github.com:keanehui/agent-skills.git`
 
-```bash
-npx skills add git@github.com:keanehui/agent-skills.git
-```
+### Option 2: Ask your agent
 
-To check for and apply updates later:
-
-```bash
-npx skills check
-npx skills update
-```
-
-### Using an AI Agent
-
-Ask your coding agent (Antigravity, Claude Code, Codex, Cursor, Gemini CLI, etc.) to install the skills for you. For example, to install all skills globally:
+Paste a prompt into your coding agent (Antigravity, Claude Code, Codex, Cursor, Gemini CLI, etc.):
 
 ```text
-Install the skills from https://github.com/keanehui/agent-skills globally.
+Install all skills from https://github.com/keanehui/agent-skills globally.
 ```
 
-Or to install a single skill into your current project only:
+Or for a single skill in your current project only:
 
 ```text
 Install the code-review skill from https://github.com/keanehui/agent-skills into this project.
 ```
 
-### Antigravity (via local clone)
+### Option 3: Manual setup (clone and link)
 
-`npx skills add` supports Antigravity directly. If you prefer tracking a local `git clone` so `git pull` updates skills automatically:
-
-- **Global (all projects):** register `<clone>/skills` in `~/.gemini/config/skills.json` using a **full absolute path** (Antigravity does not expand `~/` in `skills.json`). Merge into `"entries"` if the file already exists:
-
-  ```json
-  {
-    "entries": [
-      {
-        "path": "/absolute/path/to/agent-skills/skills"
-      }
-    ]
-  }
-  ```
-
-  Alternatively, symlink or copy individual skill folders into `~/.gemini/config/skills/`.
-
-- **Per-project:** copy or symlink `skills/<skill-name>` into `<project>/.agents/skills/`, or register it in `<project>/.agents/skills.json`.
-
-Start a new conversation after updating `skills.json` or adding skills so they load into the session context.
-
-### Manual Setup (Any Compatible Agent)
-
-Clone the repository and copy or symlink any `skills/<skill-name>/` directory into your agent's skills directory:
+Clone the repository and copy or symlink any `skills/<skill-name>/` directory into the target path for your agent:
 
 ```bash
 git clone https://github.com/keanehui/agent-skills.git
 ```
 
-- **Project scope** (for a single repository):
-  - Universal / Antigravity / Codex / Gemini CLI: `.agents/skills/<skill-name>`
-  - Tool-specific directories: `.claude/skills/<skill-name>`, `.cursor/skills/<skill-name>`
-- **Global scope** (available across all projects):
-  - Universal / Codex: `~/.agents/skills/<skill-name>`
-  - Antigravity: `~/.gemini/config/skills/<skill-name>`
-  - Claude Code: `~/.claude/skills/<skill-name>`
-  - Cursor: `~/.cursor/skills/<skill-name>`
-  - Gemini CLI: `~/.gemini/skills/<skill-name>`
+| Agent | Project scope | Global scope |
+| :--- | :--- | :--- |
+| Antigravity | `.agents/skills/<skill-name>` | `~/.gemini/config/skills/<skill-name>` |
+| Claude Code | `.claude/skills/<skill-name>` | `~/.claude/skills/<skill-name>` |
+| Codex | `.agents/skills/<skill-name>` | `~/.agents/skills/<skill-name>` |
+| Cursor | `.agents/skills/<skill-name>` or `.cursor/skills/<skill-name>` | `~/.agents/skills/<skill-name>` or `~/.cursor/skills/<skill-name>` |
+| Gemini CLI | `.agents/skills/<skill-name>` or `.gemini/skills/<skill-name>` | `~/.agents/skills/<skill-name>` or `~/.gemini/skills/<skill-name>` |
 
-Using a symlink (`ln -s /absolute/path/to/agent-skills/skills/<skill-name> <target-skills-dir>/`) lets you pull updates with `git pull` instead of re-copying files.
+Symlinking (e.g. `ln -s /absolute/path/to/agent-skills/skills/code-review <target-skills-dir>/`) keeps your installed skills in sync when you run `git pull`.
 
-## Repository Layout
+**Antigravity: register the whole clone** — instead of linking individual skills, you can register `<clone>/skills` in `~/.gemini/config/skills.json` (merging into `"entries"` if the file already exists) using a **full absolute path** (`~/` is not expanded):
+
+```json
+{
+  "entries": [
+    {
+      "path": "/absolute/path/to/agent-skills/skills"
+    }
+  ]
+}
+```
+
+## Usage
+
+Start a new session after installing so your agent loads the skill metadata.
+
+Your agent triggers `code-review` automatically when you ask it to review code or diffs, audit code quality, trace ripple effects, clean up dead code or stale docs, assess test adequacy, or verify release readiness (it avoids triggering on routine feature work or isolated bug fixes unless you ask for a broader review). Example prompt:
+
+```text
+Review my uncommitted changes for ripple effects, dead code, stale docs, and missing tests.
+```
+
+## Updating and removing
+
+- **Installed via `npx skills`:**
+
+  ```bash
+  npx skills check
+  npx skills update
+  npx skills remove code-review --global   # omit --global for project installs
+  ```
+
+- **Installed via clone / symlink / `skills.json`:** run `git pull` inside your clone to update; to uninstall, delete the copied folder or symlink (or remove its entry from `skills.json`).
+
+## Contributing
+
+Each skill lives in its own `kebab-case` directory under `skills/`:
 
 ```text
 skills/
 └── <skill-name>/
-    ├── SKILL.md       # Required: YAML frontmatter (name, description) + instructions
-    ├── scripts/       # Optional: helper executables
-    ├── references/    # Optional: supporting docs loaded on demand
-    └── assets/        # Optional: templates, schemas, or static data
+    ├── SKILL.md       # Required: YAML frontmatter + instructions
+    ├── scripts/       # Optional: helper executables (none used yet)
+    ├── references/    # Optional: supporting docs loaded on demand (none used yet)
+    └── assets/        # Optional: templates, schemas, or static data (none used yet)
 ```
 
-## Contributing a Skill
+**Required by the [Agent Skills](https://agentskills.io) specification:**
 
-1. Create a `kebab-case` directory under `skills/<skill-name>/` with a `SKILL.md` file.
-2. Start `SKILL.md` with YAML frontmatter following the [Agent Skills](https://agentskills.io) specification:
-   - `name` (required): lowercase alphanumeric and hyphens (`<= 64` characters), matching the directory name.
-   - `description` (required): clear summary of what the skill does and when to trigger it (`<= 1024` characters).
-   - `license`, `compatibility`, `metadata` (optional): include when relevant.
-3. Keep skills portable so anyone with access can use them:
-   - Never hardcode personal paths, usernames, credentials, or machine-specific assumptions.
-   - Keep instructions tool-, OS-, and language-agnostic unless the skill explicitly targets a specific stack.
-   - Keep `SKILL.md` concise; move bulky documentation into `references/` and link with relative paths.
-4. Update the **Available Skills** table in `README.md`.
+- `name` in `SKILL.md` frontmatter: lowercase alphanumeric and hyphens (`<= 64` characters), matching `<skill-name>`.
+- `description` in `SKILL.md` frontmatter: non-empty (`<= 1024` characters) describing what the skill does and when to trigger it.
+- Optional frontmatter fields (`license`, `compatibility`, `metadata`) may be included when needed.
+
+**Repository conventions:**
+
+- Keep skills portable: never hardcode personal paths, usernames, credentials, or machine-specific assumptions.
+- Keep instructions tool-, OS-, and language-agnostic unless a skill explicitly targets a specific stack.
+- Keep `SKILL.md` focused; move bulky reference material into `references/` and link with relative paths.
+- Update the [Available skills](#available-skills) table when adding or renaming a skill.
 
 ## License
 
