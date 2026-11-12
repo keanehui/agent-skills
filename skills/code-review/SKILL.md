@@ -97,21 +97,29 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   the project's scale or risk warrants it.
 
 ### C. Dead Code & Hygiene
-- Find unused symbols, files, exports, routes, feature flags, manifest
-  dependencies, commented-out code, debug leftovers, scratch files,
-  prototype/mock scaffolding, and tests that are obsolete, disabled, or skipped
-  without reason, including anything a change orphaned.
+- Find unused items (symbols, files, exports, routes, feature flags, manifest
+  dependencies, config keys, env vars, translations, styles, static files),
+  unreachable or redundant logic (impossible branches/states, dead paths of
+  rolled-out or retired flags, duplicate checks, expired compatibility
+  shims), leftovers (commented-out code, debug output, scratch files,
+  prototype/mock scaffolding), and tests that are obsolete, disabled, or
+  skipped without reason, including anything a change orphaned.
 - Before calling something dead, check dynamic references, reflection/DI,
   configs, build scripts, entrypoints, and public exports. Use available
   analysis tooling (linters, unused-code detectors) to surface candidates,
-  alongside reference searches.
+  alongside reference searches. Report candidates as *confirmed* (no
+  references and not externally reachable) or *likely* (dynamic, public, or
+  external use remains possible); treat *likely* ones as open questions, not
+  removals, until the user confirms.
 
 ### D. Comments & Contract Sync
 - Comments and docstrings should explain *why*, not *what*, and match current
   signatures, invariants, defaults, and behavior. Flag stale or contradictory
-  ones and triage `TODO`/`FIXME`.
+  ones, and triage `TODO`/`FIXME`: flag resolved or obsolete ones for removal
+  and vague ones as needing context.
 - Check that code, config (including examples), schemas, CI files, help text,
-  and docs agree, including producer ↔ consumer contracts.
+  and docs agree, including producer ↔ consumer contracts, and flag
+  references to missing or renamed files, paths, commands, or links.
 
 ### E. Security & Production Readiness *(when applicable)*
 - **Security/supply chain:** exposed secrets, missing ignore/package
@@ -144,10 +152,12 @@ non-blocking open questions. Keep it short when the code is clean.
 
 ## 7. Fix (only when asked)
 
-- Separate safe, behavior-preserving cleanups from breaking contract, schema,
-  or behavior changes, and confirm trade-offs with the user before the latter.
-  Large structural refactors (split, move, merge) must still preserve
-  behavior, but also confirm with the user first.
+- Keep safe, behavior-preserving cleanups in a separate pass from breaking
+  contract, schema, or behavior changes, and confirm trade-offs with the user
+  before the latter. Large structural refactors (split, move, merge) must
+  still preserve behavior, but also confirm with the user first. Update
+  lockfiles and generated artifacts through their tools (targeted, without
+  unrelated upgrades), never by hand.
 - Update ripple-effect companions in the same pass. Confirm first if the
   updates reach into other code modules (beyond the change's own tests and
   docs) or alter a public interface.
