@@ -19,7 +19,7 @@ prior context and user decisions, but re-verify against live files and command
 output.
 
 Default to **read-only analysis** unless the user asks for fixes. Work through
-the sections in order; diagnostic commands from section 5 may run earlier as
+the sections in order; read-only diagnostic commands may run earlier as
 needed.
 
 ## 1. Principles
@@ -29,7 +29,7 @@ needed.
   pinned manifests, local sources, or web search, not memory. Re-read exact
   lines right before reporting or editing. If domain rules, intentional
   trade-offs, or target environments can't be proven, ask the user when it
-  blocks the work; otherwise record it as an open question in the report.
+  blocks the work; otherwise note it as an open question.
 - **Proportional and high-signal.** Apply each lens only where it fits the
   project. Never assume a tool, framework, or practice exists; use what the
   project provides and skip the rest. Never invent filler findings. Leave pure
@@ -42,11 +42,13 @@ Infer the project's nature, conventions, and tooling from the workspace. Honor
 prior conversation decisions and documented architectural trade-offs, unless
 the code, tests, or docs contradict them or they cause a bug or security flaw.
 
-- **Change review:** identify the changed code from the diff. With no VCS or
-  diff, use the user's description or recent file modifications, or ask.
+- **Change review:** identify the changed code from the diff (or from the
+  user's description or recent file modifications if no VCS/diff exists, or
+  ask). Across all lenses, only flag what the change introduces, worsens, or
+  orphans, plus any broken ripple-effect companions.
 - **Whole-project audit:** map entrypoints, high-risk areas, and overall
   structure first, then audit module by module (parallel read-only subagents if
-  useful). Report what was inspected and what was not.
+  useful), tracking what was inspected and what was not.
 - Read generated and third-party files to verify contracts, but direct findings
   and edits at maintained sources or generators.
 
@@ -77,13 +79,14 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   layout conventions: with related code, or in a new unit when it has its own
   responsibility. Flag unrelated responsibilities mixed in one unit, tangled
   dependencies, or needless fragmentation (e.g., tiny single-use units,
-  pass-through wrappers). In a change review, only flag what the change
-  introduces or worsens. Size alone is not a verdict.
+  pass-through wrappers). Size alone is not a verdict.
 
 ### B. Correctness & Test Adequacy
-- Trace data flow, state transitions, boundary inputs, concurrency/atomicity
-  (check-then-act races, retries, locks/transactions), error propagation (fail
-  fast, keep context, no silent swallowing), and cleanup on success and failure.
+- Trace data flow, state transitions, boundary inputs, resource bounds and
+  hot-path efficiency (unbounded memory/queries, N+1 I/O, blocking calls on
+  async paths), concurrency/atomicity (check-then-act races, retries,
+  locks/transactions), error propagation (fail fast, keep context, no silent
+  swallowing), and cleanup on success and failure.
 - For each defect, find the root cause and search for the same pattern
   elsewhere.
 - Map each changed or critical behavior (branches, boundaries, error paths) to
@@ -115,17 +118,18 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   exclusions, untrusted input and auth boundaries, leaky error responses,
   dependency health, and pinning suited to how the project is distributed.
 - **Resilience:** fail-fast config validation (no insecure production
-  fallbacks), bounded timeouts and idempotent retries on external I/O,
-  constraints backing critical invariants (no external side effects inside
-  uncommitted transactions), backward-safe migrations/contracts, clean
-  shutdown/health semantics, logs free of PII and secrets.
+  fallbacks), bounded timeouts, payload/query limits, and idempotent retries
+  on external I/O, constraints backing critical invariants (no external side
+  effects inside uncommitted transactions), backward-safe
+  migrations/contracts, clean shutdown/health semantics, and actionable
+  failure telemetry with logs free of PII and secrets.
 
 ## 5. Verify
 
 Run available build, type-check, lint, test, coverage, or audit commands when
-safe and non-destructive, and avoid or clean up any artifacts they generate.
-Report exact commands and outcomes. Never claim a check passed from reading
-code alone, and note any that couldn't run.
+safe and non-destructive. In read-only mode, prefer check/dry-run flags so
+commands never mutate tracked files, and avoid or clean up any untracked
+artifacts they generate. Never claim a check passed from reading code alone.
 
 ## 6. Report
 
@@ -134,7 +138,9 @@ each with exact `file:line` (or the affected units for structural findings),
 concrete impact, and a minimal fix. Rate by demonstrated impact: structural
 findings are Cleanup / Polish unless they cause concrete harm (e.g., circular
 dependencies, risky coupling), and untested critical behavior is at least
-**Important**. Keep it short when the code is clean.
+**Important**. Include exact verification commands and outcomes (noting any
+that couldn't run), inspected vs. uninspected scope (for broad audits), and any
+non-blocking open questions. Keep it short when the code is clean.
 
 ## 7. Fix (only when asked)
 
