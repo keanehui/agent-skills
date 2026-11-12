@@ -16,7 +16,7 @@ Follow the prompts to choose skills, target agents, and project vs. global scope
 
 | Skill | Description |
 | :--- | :--- |
-| [`code-review`](./skills/code-review/SKILL.md) | General-purpose code review: change-impact (ripple effect) check, dead-code and stale-doc cleanup, test adequacy, and production-readiness audit. |
+| [`code-review`](./skills/code-review/SKILL.md) | General-purpose code review: design, readability, and maintainability; change-impact (ripple effect) check; dead-code and stale-doc cleanup; test adequacy; and production-readiness audit. |
 
 ## Installation
 
@@ -82,10 +82,10 @@ Symlinking (e.g. `ln -s /absolute/path/to/agent-skills/skills/code-review <targe
 
 Start a new session after installing so your agent loads the skill metadata.
 
-Your agent triggers `code-review` automatically when you ask it to review code or diffs, audit code quality, trace ripple effects, clean up dead code or stale docs, assess test adequacy, or verify release readiness (it avoids triggering on routine feature work or isolated bug fixes unless you ask for a broader review). Example prompt:
+Your agent triggers `code-review` automatically when you ask it to review code or diffs (including for design, readability, or maintainability), audit code quality, trace ripple effects, clean up dead code or stale docs, assess test adequacy, or verify release readiness (it avoids triggering on routine feature work or isolated bug fixes unless you ask for a broader review). Example prompt:
 
 ```text
-Review my uncommitted changes for ripple effects, dead code, stale docs, and missing tests.
+Review my uncommitted changes for readability, ripple effects, dead code, stale docs, and missing tests.
 ```
 
 ## Updating and removing
@@ -124,7 +124,7 @@ skills/
 - Keep skills portable: never hardcode personal paths, usernames, credentials, or machine-specific assumptions.
 - Keep instructions tool-, OS-, and language-agnostic unless a skill explicitly targets a specific stack.
 - Keep `SKILL.md` focused; move bulky reference material into `references/` and link with relative paths.
-- Update the [Available skills](#available-skills) table when adding or renaming a skill.
+- Update the [Available skills](#available-skills) table when adding, renaming, or changing the description of a skill, and keep the [Usage](#usage) section consistent.
 
 ## License
 

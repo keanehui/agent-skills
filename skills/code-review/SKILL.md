@@ -1,13 +1,14 @@
 ---
 name: code-review
 description: >-
-  Performs a general-purpose code review: change-impact (ripple effect) check,
-  dead-code and stale-doc cleanup, test adequacy, and production-readiness
-  audit for any codebase. Use when asked to review code or diffs, audit
-  quality, clean up redundant code or outdated docs/comments, assess test
-  adequacy, confirm a change was applied everywhere, or verify release
-  readiness. Do not use for routine feature work or debugging a single isolated
-  runtime error unless a broader review is requested.
+  Performs a general-purpose code review: design, readability, and
+  maintainability; change-impact (ripple effect) check; dead-code and
+  stale-doc cleanup; test adequacy; and production-readiness audit for any
+  codebase. Use when asked to review code or diffs, audit quality, clean up
+  redundant code or outdated docs/comments, assess test adequacy, confirm a
+  change was applied everywhere, or verify release readiness. Do not use for
+  routine feature work or debugging a single isolated runtime error unless a
+  broader review is requested.
 license: MIT
 ---
 
@@ -82,11 +83,12 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
 - Reuse existing utilities and dependencies before adding new ones;
   consolidate duplication only when it simplifies maintenance without forced
   coupling.
-- Clear control flow; accurate names consistent with the project's vocabulary
-  (no misleading names, side effects behind query-like names, or ambiguous
-  units); named constants, types, or config over magic values and hard-coded
-  environment details (hosts, absolute paths); a single source of truth with
-  no derived state that can drift.
+- Clear control flow (limited nesting, no dense or overly clever constructs);
+  accurate names consistent with the project's vocabulary (no misleading
+  names, side effects behind query-like names, or ambiguous units); named
+  constants, types, or config over magic values and hard-coded environment
+  details (hosts, absolute paths); a single source of truth with no derived
+  state that can drift.
 - **Structure and placement:** code lives where it best fits the project's
   layout conventions: with related code, or in a new unit when it has its own
   responsibility. Flag unrelated responsibilities mixed in one unit, tangled
@@ -103,10 +105,10 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   elsewhere.
 - Map each changed or critical behavior (branches, boundaries, error paths) to
   a test that would actually fail if the behavior broke, not just happy paths
-  or stale mocks. Use coverage output on changed code if available; treat gaps
-  as leads, not a numeric target, and covered lines as no proof of meaningful
-  assertions. Flag untested critical behavior only where the project's scale or
-  risk warrants it.
+  or mocks that are stale or brittle. Use coverage output on changed code if
+  available; treat gaps as leads, not a numeric target, and covered lines as
+  no proof of meaningful assertions. Flag untested critical behavior only
+  where the project's scale or risk warrants it.
 
 ### C. Dead Code & Hygiene
 - Find unused items (symbols, files, exports, routes, feature flags, manifest
@@ -162,14 +164,14 @@ Never claim a check passed from reading code alone.
 
 Group verified findings as **Blocker**, **Important**, or **Cleanup / Polish**,
 each with exact `file:line` (or the affected units for structural findings),
-concrete impact, and a minimal fix. Rate by demonstrated impact: structural
-findings are Cleanup / Polish unless they cause concrete harm (e.g., circular
-dependencies, risky coupling), and untested critical behavior is at least
-**Important** (reported as a coverage gap, not a defect). List material
-pre-existing issues separately from change findings; distinguish their severity
-and any release-readiness implications from whether the change introduced
-them. Include exact verification commands and outcomes (noting any that
-couldn't run), inspected vs. uninspected scope (for broad audits), and any
+concrete impact, and a minimal fix. Rate by demonstrated impact: structural and
+readability findings are Cleanup / Polish unless they cause concrete harm
+(e.g., circular dependencies, risky coupling), and untested critical behavior
+is at least **Important** (reported as a coverage gap, not a defect). List
+material pre-existing issues separately from change findings; distinguish their
+severity and any release-readiness implications from whether the change
+introduced them. Include exact verification commands and outcomes (noting any
+that couldn't run), inspected vs. uninspected scope (for broad audits), and any
 non-blocking open questions. Keep it short when the code is clean.
 
 ## 7. Fix (only when asked)
@@ -210,7 +212,8 @@ Applies only when editing this file, not when performing a review.
   edit.
 - **Consistent.** Check each edit for conflicts with existing rules (e.g.,
   read-only default, state placement) and keep the `description` trigger
-  accurate.
+  accurate, along with any copies of it outside this file (e.g., a repository
+  README or skill listing).
 - **Delivery.** Before presenting changes, look for remaining gaps and
   conflicts and fix them first. Then update the file in place, or output the
   complete paste-ready file if asked.
