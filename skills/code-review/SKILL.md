@@ -105,8 +105,9 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
 - For changes, check they fully achieve the stated intent (request, PR/issue
   description), with no missing cases or unexplained scope drift.
 - Trace data flow, state transitions, boundary inputs, resource bounds and
-  hot-path efficiency (unbounded memory/queries, N+1 I/O, blocking calls on
-  async paths), concurrency/atomicity (check-then-act races, retries,
+  efficiency on hot paths or large inputs (avoidable quadratic-or-worse work,
+  unbounded memory/queries, N+1 I/O, redundant I/O or recomputation, blocking
+  calls on async paths), concurrency/atomicity (check-then-act races, retries,
   locks/transactions), error propagation (fail fast, keep context, no silent
   swallowing), and cleanup on success and failure.
 - For each defect, find the root cause and search for the same pattern
@@ -160,14 +161,14 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
 
 ## 5. Verify
 
-Run relevant available build, type-check, lint, test, coverage, or audit
-commands when safe: inspect their definitions and likely effects first.
-Dependency installation, migrations, and external service access through
-project commands require explicit authorization. In change reviews,
-distinguish pre-existing check failures from regressions the change introduced
-(e.g., from available CI output, failure scope, or a lightweight isolated copy
-when safe) without altering user edits or working-tree state; if
-undeterminable, report failures as unattributed.
+Run relevant available build, type-check, lint, test, coverage, benchmark, or
+audit commands when safe: inspect their definitions and likely effects first.
+Dependency installation, migrations, and external service access through project
+commands require explicit authorization. In change reviews, distinguish
+pre-existing check failures from regressions the change introduced (e.g., from
+available CI output, failure scope, or a lightweight isolated copy when safe)
+without altering user edits or working-tree state; if undeterminable, report
+failures as unattributed.
 
 In read-only mode, avoid source or configuration changes; isolate necessary
 tool output where practical and preserve pre-existing files and user changes.
@@ -180,16 +181,18 @@ Group verified findings as **Blocker**, **Important**, or **Cleanup / Polish**,
 each with exact `file:line` (or the affected units for structural findings),
 concrete impact, and a minimal fix. Rate by demonstrated impact: **Blocker**
 breaks the build/release or core behavior, loses or corrupts data, or is
-exploitable; structural and readability findings are Cleanup / Polish unless
-they cause concrete harm (e.g., circular dependencies, risky coupling), and
-untested critical behavior is at least **Important** (reported as a coverage
-gap, not a defect). List material pre-existing issues separately from change
-findings; distinguish their severity and any release-readiness implications
-from whether the change introduced them. Include exact verification commands
-and outcomes (noting any that couldn't run), inspected vs. uninspected scope
-(for broad audits), and any non-blocking open questions. Group repeated
-low-severity patterns (with count/scope and representative locations) rather
-than listing every instance. Keep it short when the code is clean.
+exploitable; clear scaling or hot-path bottlenecks are at least **Important**,
+as is untested critical behavior (reported as a coverage gap, not a defect);
+structural and readability findings are Cleanup / Polish unless they cause
+concrete harm (e.g., circular dependencies, risky coupling). Efficiency concerns
+lacking realistic scale or evidence are not findings; at most, list them as open
+questions. List material pre-existing issues separately from change findings;
+distinguish their severity and any release-readiness implications from whether
+the change introduced them. Include exact verification commands and outcomes
+(noting any that couldn't run), inspected vs. uninspected scope (for broad
+audits), and any non-blocking open questions. Group repeated low-severity
+patterns (with count/scope and representative locations) rather than listing
+every instance. Keep it short when the code is clean.
 
 ## 7. Fix (only when asked)
 
