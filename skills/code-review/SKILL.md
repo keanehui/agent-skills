@@ -38,8 +38,9 @@ needed.
   project. Never assume a tool, framework, or practice exists; use what the
   project provides and skip the rest. Never invent filler findings. Leave pure
   formatting to configured linters/formatters unless style hides bugs or hurts
-  readability. Scale investigation depth to scope and risk, and stop expanding
-  when further inspection is unlikely to change the findings.
+  readability. Scale investigation depth to the user's stated focus, scope, and
+  risk, and stop expanding when further inspection is unlikely to change the
+  findings.
 
 ## 2. Scope
 
@@ -50,11 +51,13 @@ Treat such documentation as evidence of intent. To make a confirmed decision
 last across sessions, propose recording it in the project (e.g., a reason
 comment or docs) rather than in agent memory.
 
-- **Change review:** identify the changed code from the diff (or from the
-  user's description or recent file modifications if no VCS/diff exists, or
-  ask). Across all lenses, only flag what the change introduces, worsens, or
-  orphans, plus any broken ripple-effect companions. Note material pre-existing
-  issues found along the way separately from change findings.
+- **Change review:** identify the changed code from the diff, confirming the
+  comparison base when multiple change sets exist (e.g., unstaged, staged,
+  branch commits); without VCS/diff, use the user's description or recent file
+  modifications, or ask. Across all lenses, only flag what the change
+  introduces, worsens, or orphans, plus any broken ripple-effect companions.
+  Note material pre-existing issues found along the way separately from change
+  findings.
 - **Whole-project audit:** map entrypoints, high-risk areas, and overall
   structure first, then audit module by module (parallel read-only subagents if
   useful), tracking what was inspected and what was not.
@@ -74,6 +77,9 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   changelogs; translations; generated artifacts.
 - Flag companions that should have changed but didn't (e.g., a renamed
   parameter still in a docstring, a changed default still in the README).
+- Check backward compatibility for external consumers that workspace search
+  can't reach (public APIs, CLI flags, persisted or serialized formats, wire
+  contracts).
 
 ## 4. Review Lenses
 
@@ -96,6 +102,8 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
   pass-through wrappers). Size alone is not a verdict.
 
 ### B. Correctness & Test Adequacy
+- For changes, check they fully achieve the stated intent (request, PR/issue
+  description), with no missing cases or unexplained scope drift.
 - Trace data flow, state transitions, boundary inputs, resource bounds and
   hot-path efficiency (unbounded memory/queries, N+1 I/O, blocking calls on
   async paths), concurrency/atomicity (check-then-act races, retries,
@@ -112,13 +120,13 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
 
 ### C. Dead Code & Hygiene
 - Find unused items (symbols, files, exports, routes, feature flags, manifest
-  dependencies, config keys, env vars, translations, styles, static files),
-  unreachable or redundant logic (impossible branches/states, dead paths of
-  rolled-out or retired flags, duplicate checks, expired compatibility
-  shims), leftovers (commented-out code, debug output, scratch files,
-  prototype/mock scaffolding), tests that are obsolete, disabled, or skipped
-  without reason, and checks silenced without reason (lint/type suppressions,
-  loosened configs), including anything a change orphaned.
+  dependencies, config keys, env vars, translations, styles, static files).
+  Find unreachable or redundant logic (impossible branches/states, dead paths
+  of rolled-out or retired flags, duplicate checks, expired compatibility
+  shims) and leftovers (commented-out code, debug output, scratch files,
+  prototype/mock scaffolding). Find tests that are obsolete, disabled, or
+  skipped without reason, and checks silenced without reason (lint/type
+  suppressions, loosened configs). Include anything a change orphaned.
 - Before calling something dead, check dynamic references, reflection/DI,
   configs, build scripts, entrypoints, and public exports. Use available
   analysis tooling (linters, unused-code detectors) to surface candidates,
@@ -139,21 +147,27 @@ error messages, paths, CLI flags, env vars) instead of trusting the diff.
 
 ### E. Security & Production Readiness *(when applicable)*
 - **Security/supply chain:** exposed secrets, missing ignore/package
-  exclusions, untrusted input and auth boundaries, leaky error responses,
-  dependency health, and pinning suited to how the project is distributed.
+  exclusions, untrusted input and authn/authz boundaries (including per-object
+  access), leaky error responses, dependency health, and pinning suited to how
+  the project is distributed.
 - **Resilience:** fail-fast config validation (no insecure production
   fallbacks), bounded timeouts, payload/query limits, and idempotent retries
   on external I/O, constraints backing critical invariants, consistency
   between commits and external side effects (rollback and partial-failure
-  paths), backward-safe migrations/contracts, clean shutdown/health semantics,
-  and actionable failure telemetry with logs free of PII and secrets.
+  paths), rollout-safe migrations and contracts, clean shutdown/health
+  semantics, and actionable failure telemetry with logs free of PII and
+  secrets.
 
 ## 5. Verify
 
 Run relevant available build, type-check, lint, test, coverage, or audit
 commands when safe: inspect their definitions and likely effects first.
 Dependency installation, migrations, and external service access through
-project commands require explicit authorization.
+project commands require explicit authorization. In change reviews,
+distinguish pre-existing check failures from regressions the change introduced
+(e.g., from available CI output, failure scope, or a lightweight isolated copy
+when safe) without altering user edits or working-tree state; if
+undeterminable, report failures as unattributed.
 
 In read-only mode, avoid source or configuration changes; isolate necessary
 tool output where practical and preserve pre-existing files and user changes.
@@ -164,15 +178,18 @@ Never claim a check passed from reading code alone.
 
 Group verified findings as **Blocker**, **Important**, or **Cleanup / Polish**,
 each with exact `file:line` (or the affected units for structural findings),
-concrete impact, and a minimal fix. Rate by demonstrated impact: structural and
-readability findings are Cleanup / Polish unless they cause concrete harm
-(e.g., circular dependencies, risky coupling), and untested critical behavior
-is at least **Important** (reported as a coverage gap, not a defect). List
-material pre-existing issues separately from change findings; distinguish their
-severity and any release-readiness implications from whether the change
-introduced them. Include exact verification commands and outcomes (noting any
-that couldn't run), inspected vs. uninspected scope (for broad audits), and any
-non-blocking open questions. Keep it short when the code is clean.
+concrete impact, and a minimal fix. Rate by demonstrated impact: **Blocker**
+breaks the build/release or core behavior, loses or corrupts data, or is
+exploitable; structural and readability findings are Cleanup / Polish unless
+they cause concrete harm (e.g., circular dependencies, risky coupling), and
+untested critical behavior is at least **Important** (reported as a coverage
+gap, not a defect). List material pre-existing issues separately from change
+findings; distinguish their severity and any release-readiness implications
+from whether the change introduced them. Include exact verification commands
+and outcomes (noting any that couldn't run), inspected vs. uninspected scope
+(for broad audits), and any non-blocking open questions. Group repeated
+low-severity patterns (with count/scope and representative locations) rather
+than listing every instance. Keep it short when the code is clean.
 
 ## 7. Fix (only when asked)
 
@@ -195,8 +212,11 @@ non-blocking open questions. Keep it short when the code is clean.
   If test and code disagree, determine which is correct first.
 - When adding tests, follow the project's existing conventions (ask before
   introducing a framework). Keep them deterministic and focused on one
-  behavior each; where practical, confirm a bug-fix test fails without the fix.
-- Re-run section 5 after edits.
+  behavior each. Where practical, confirm a bug-fix test fails without the fix,
+  and add characterization tests before restructuring weakly tested critical
+  code.
+- For large refactors, work in small steps and re-run section 5 after each;
+  otherwise re-run section 5 after edits.
 
 ## Maintaining This Skill
 
